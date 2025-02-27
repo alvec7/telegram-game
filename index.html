@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Кто хочет стать миллионером</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Кто хочет стать миллионером</h1>
+        </div>
+        
+        <div class="host-message" id="host-message">
+            Добро пожаловать в игру!
+        </div>
+
+        <div class="game-area">
+            <div class="question-container">
+                <div class="timer" id="timer">60</div>
+                <div class="question" id="question"></div>
+                <div class="answers">
+                    <button class="answer" id="A"></button>
+                    <button class="answer" id="B"></button>
+                    <button class="answer" id="C"></button>
+                    <button class="answer" id="D"></button>
+                </div>
+            </div>
+            
+            <div class="lifelines">
+                <button id="fifty-fifty">50/50</button>
+                <button id="phone-friend">Звонок другу</button>
+                <button id="ask-audience">Помощь зала</button>
+            </div>
+        </div>
+        <div class="start-button-container" id="start-button-container">
+            <button id="start-button" class="start-button">Начать игру</button>
+        </div>
+    </div>
+    <div class="confirmation-modal" id="confirmation-modal">
+        <div class="modal-content">
+            <button class="close-button">×</button>
+            <p>Кажется ваши мысли штормит. Вы уверены в ответе?</p>
+            <div class="modal-buttons">
+                <button id="confirm-yes">Да</button>
+                <button id="confirm-no">Нет</button>
+            </div>
+        </div>
+    </div>
+    <div class="prize-modal" id="winner-modal">
+        <div class="modal-content prize-content">
+            <button class="close-button">×</button>
+            <h2>🏆 Победа!</h2>
+            <p>Поздравляем с победой! Вы покорили нас своими знаниями о море и яхтах. В знак восхищения маркетплейс яхтенных туров ImSkipper дарит вам промокод <span class="promo-code">WINNER</span> на скидку €50 при заказе круиза или регаты.</p>
+            <a href="https://imskipper.net?utm_source=game" class="prize-button" target="_blank">Получить подарок</a>
+        </div>
+    </div>
+
+    <div class="prize-modal" id="consolation-modal">
+        <div class="modal-content prize-content">
+            <button class="close-button">×</button>
+            <h2>🎁 Ваш подарок</h2>
+            <p>Пусть фортуна не на вашей стороне, но любые усилия достойны награды. Маркетплейс яхтенных туров ImSkipper дарит вам промокод <span class="promo-code">GAME</span> на скидку €25 при заказе круиза или регаты.</p>
+            <div class="prize-buttons">
+                <a href="https://imskipper.net?utm_source=game" class="prize-button" target="_blank">Получить подарок</a>
+                <button class="prize-button play-again">Сыграть снова</button>
+            </div>
+        </div>
+    </div>
+    <script src="questions.js"></script>
+    <script src="game.js"></script>
+</body>
+</html> 
