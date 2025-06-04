@@ -1,8 +1,22 @@
+:root {
+    --bg-color: #D7ECFD;
+    --primary-color: #35A2F3;
+    --dark-color: #282E33;
+    --success-color: #35F2C5;
+    --error-color: #F23A35;
+    --accent-color: #ffd700;
+    --timer-bg: #1a0f4d;
+    --timer-border: #4169e1;
+    --warning-bg: #8b0000;
+    --warning-border: #ff0000;
+    --modal-button-bg: #2f1c87;
+}
+
 body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    background: #D7ECFD;
+    background: var(--bg-color);
     color: white;
     min-height: 100vh;
 }
@@ -25,7 +39,7 @@ body {
     color: white;
     margin: 0;
     padding: 20px;
-    background: #35A2F3;
+    background: var(--primary-color);
     border-radius: 15px;
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
@@ -56,7 +70,7 @@ body {
 
 .lifelines button {
     padding: 10px 20px;
-    background: #35A2F3;
+    background: var(--primary-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -76,13 +90,13 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--primary-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
 
 .lifelines button:hover:not(:disabled) {
-    background: #282E33;
+    background: var(--dark-color);
     transform: scale(1.05);
     box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
@@ -96,7 +110,7 @@ body {
     width: 100%;
     box-sizing: border-box;
     padding: 25px;
-    background: #282E33;
+    background: var(--dark-color);
     border-radius: 15px;
     text-align: center;
     font-style: italic;
@@ -121,7 +135,7 @@ body {
     font-size: 1.4em;
     margin-bottom: 25px;
     padding: 25px 40px;
-    background: #35A2F3;
+    background: var(--primary-color);
     text-align: center;
     border: none;
     position: relative;
@@ -135,7 +149,7 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--primary-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
@@ -151,7 +165,7 @@ body {
 
 .answer {
     padding: 15px 40px;
-    background: #35A2F3;
+    background: var(--primary-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -168,19 +182,19 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--primary-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
 
 .answer:hover {
-    background: #282E33;
+    background: var(--dark-color);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .answer.correct {
-    background: #35F2C5 !important;
+    background: var(--success-color) !important;
     clip-path: none;
     border-radius: 5px;
     transform: none;
@@ -191,7 +205,7 @@ body {
 }
 
 .answer.wrong {
-    background: #F23A35 !important;
+    background: var(--error-color) !important;
     clip-path: none;
     border-radius: 5px;
     transform: none;
@@ -202,12 +216,12 @@ body {
 }
 
 .answer.correct:hover {
-    background: #35F2C5 !important;
+    background: var(--success-color) !important;
     transform: none;
 }
 
 .answer.wrong:hover {
-    background: #F23A35 !important;
+    background: var(--error-color) !important;
     transform: none;
 }
 
@@ -217,7 +231,7 @@ body {
 }
 
 .answer .letter {
-    color: #ffd700;
+    color: var(--accent-color);
     margin-right: 5px;
 }
 
@@ -308,8 +322,8 @@ body {
     right: 20px;
     width: 60px;
     height: 60px;
-    background: #1a0f4d;
-    border: 2px solid #4169e1;
+    background: var(--timer-bg);
+    border: 2px solid var(--timer-border);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -321,8 +335,8 @@ body {
 }
 
 .timer.warning {
-    background: #8b0000;
-    border-color: #ff0000;
+    background: var(--warning-bg);
+    border-color: var(--warning-border);
     animation: pulse 1s infinite;
 }
 
@@ -346,11 +360,11 @@ body {
 }
 
 .modal-content {
-    background: #35A2F3;
+    background: var(--primary-color);
     padding: 30px;
     border-radius: 15px;
     text-align: center;
-    border: 2px solid #4169e1;
+    border: 2px solid var(--timer-border);
     max-width: 400px;
     width: 90%;
     position: relative;
@@ -365,7 +379,7 @@ body {
 
 .modal-buttons button {
     padding: 10px 30px;
-    background: #2f1c87;
+    background: var(--modal-button-bg);
     color: white;
     border: none;
     border-radius: 5px;
@@ -375,7 +389,7 @@ body {
 }
 
 .modal-buttons button:hover {
-    background: #4169e1;
+    background: var(--timer-border);
 }
 
 .start-button-container {
@@ -390,7 +404,7 @@ body {
 .start-button {
     padding: 25px 80px;  /* Увеличим размер кнопки */
     font-size: 1.8em;  /* Увеличим размер шрифта */
-    background: #35A2F3;
+    background: var(--primary-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -406,13 +420,13 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--primary-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
 
 .start-button:hover {
-    background: #282E33;
+    background: var(--dark-color);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
@@ -432,17 +446,17 @@ body {
 
 .prize-content {
     max-width: 600px;
-    background: linear-gradient(45deg, #35A2F3 0%, #282E33 100%);
+    background: linear-gradient(45deg, var(--primary-color) 0%, var(--dark-color) 100%);
     padding: 40px;
     text-align: center;
     line-height: 1.6;
     border-radius: 15px;
-    border: 2px solid #4169e1;
+    border: 2px solid var(--timer-border);
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 .prize-content h2 {
-    color: #ffd700;
+    color: var(--accent-color);
     font-size: 2em;
     margin-bottom: 30px;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
@@ -455,7 +469,7 @@ body {
 }
 
 .promo-code {
-    background: #282E33;
+    background: var(--dark-color);
     padding: 5px 15px;
     border-radius: 5px;
     font-weight: bold;
@@ -476,7 +490,7 @@ body {
 .prize-button {
     display: inline-block;
     padding: 15px 40px;
-    background: #35A2F3;
+    background: var(--primary-color);
     color: white;
     text-decoration: none;
     font-size: 1.2em;
@@ -487,11 +501,11 @@ body {
 }
 
 .prize-button.play-again {
-    background: #282E33;
+    background: var(--dark-color);
 }
 
 .prize-button.play-again:hover {
-    background: #35A2F3;
+    background: var(--primary-color);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(65, 105, 225, 0.3);
 }
@@ -511,7 +525,7 @@ body {
     height: 30px;
     background: transparent;
     border: none;
-    color: #ffd700;
+    color: var(--accent-color);
     font-size: 24px;
     cursor: pointer;
     display: flex;
@@ -530,7 +544,7 @@ body {
 .answer:hover,
 .lifelines button:hover:not(:disabled),
 .start-button:hover {
-    background: #282E33;
+    background: var(--dark-color);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
