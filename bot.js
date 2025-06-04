@@ -25,3 +25,4 @@ bot.on('web_app_data', (msg) => {
     const data = JSON.parse(msg.web_app_data.data);
     // Обработка результатов
 }); 
+
