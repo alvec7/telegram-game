@@ -1,5 +1,8 @@
 const TelegramBot = require('node-telegram-bot-api');
-const token = '8139802825:AAH3ZzyGN8WS3hlWez7u0GzrbLlyTH8eBKI';
+const token = process.env.BOT_TOKEN;
+if (!token) {
+    throw new Error('BOT_TOKEN environment variable not set');
+}
 const webAppUrl = 'https://github.com/alvec7/telegram-game'; // Новый URL
 
 const bot = new TelegramBot(token, {polling: true});

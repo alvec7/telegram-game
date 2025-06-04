@@ -17,3 +17,12 @@ npm test
 ```
 
 The test environment uses JSDOM to simulate the game DOM and verify behaviours of `MillionaireGame`.
+
+## Bot configuration
+
+The Telegram bot expects its token to be supplied via the `BOT_TOKEN` environment
+variable. Start the bot with:
+
+```bash
+BOT_TOKEN=your-telegram-token node bot.js
+```
