@@ -27,37 +27,37 @@ class MillionaireGame {
             askAudience: false,
             lastQuestionUsed: -1
         };
-        
+
         this.timer = null;
         this.timeLeft = 60;
         this.timerElement = document.getElementById('timer');
-        
+
         this.thinkingStartTime = null;
         this.selectedAnswer = null;
         this.confirmationModal = document.getElementById('confirmation-modal');
         this.confirmYesButton = document.getElementById('confirm-yes');
         this.confirmNoButton = document.getElementById('confirm-no');
-        
+
         this.isPaused = false;
-        
+
         this.startButtonContainer = document.getElementById('start-button-container');
         this.startButton = document.getElementById('start-button');
-        
+
         this.lifelines = {
             fiftyFifty: document.getElementById('fifty-fifty'),
             phoneFriend: document.getElementById('phone-friend'),
             askAudience: document.getElementById('ask-audience')
         };
         this.lifelinesContainer = document.querySelector('.lifelines');
-        
+
         this.winnerModal = document.getElementById('winner-modal');
         this.consolationModal = document.getElementById('consolation-modal');
-        
+
         this.initializeElements();
         this.initializeEventListeners();
         this.initializeNewGame();
         this.startGame();
-        
+
         // Находим все кнопки закрытия
         document.querySelectorAll('.close-button').forEach(button => {
             button.addEventListener('click', (e) => {
@@ -110,7 +110,7 @@ class MillionaireGame {
         this.confirmNoButton.addEventListener('click', () => this.handleConfirmation(false));
 
         this.startButton.addEventListener('click', () => this.startFirstQuestion());
-        
+
         // Добавляем обработчик для кнопки "Сыграть снова"
         document.querySelector('.play-again').addEventListener('click', () => {
             this.hideConsolationModal(() => this.resetGame());
@@ -126,16 +126,16 @@ class MillionaireGame {
             askAudience: false,
             lastQuestionUsed: -1
         };
-        
+
         this.timeLeft = 60;
         this.timer = null;
         this.thinkingStartTime = null;
         this.isPaused = false;
-        
+
         Object.keys(this.lifelines).forEach(key => {
             this.lifelines[key].disabled = false;
         });
-        
+
         Object.values(this.answerButtons).forEach(button => {
             button.className = 'answer';
         });
@@ -148,9 +148,9 @@ class MillionaireGame {
         });
         this.timerElement.style.visibility = 'hidden';
         this.lifelinesContainer.style.display = 'none';
-        
+
         this.initializeNewGame();
-        
+
         this.startGame();
     }
 
@@ -170,32 +170,32 @@ class MillionaireGame {
         this.lifelinesContainer.style.display = 'none';
 
         this.showHostMessage(introMessages[0]);
-        
+
         setTimeout(() => {
             this.showHostMessage(introMessages[1]);
-            
+
             setTimeout(() => {
                 this.showHostMessage(introMessages[2]);
-                
+
                 setTimeout(() => {
                     this.startButtonContainer.style.display = 'block';
                 }, 5000);
-                
+
             }, 5000);
-            
+
         }, 5000);
     }
 
     startFirstQuestion() {
         this.startButtonContainer.style.display = 'none';
-        
+
         this.questionElement.style.visibility = 'visible';
         Object.values(this.answerButtons).forEach(button => {
             button.style.visibility = 'visible';
         });
         this.timerElement.style.visibility = 'visible';
         this.lifelinesContainer.style.display = 'flex';
-        
+
         this.showQuestion();
     }
 
@@ -203,20 +203,20 @@ class MillionaireGame {
         this.timeLeft = 60;
         this.updateTimerDisplay();
         this.thinkingStartTime = Date.now();
-        
+
         if (this.timer) {
             clearInterval(this.timer);
         }
-        
+
         this.timer = setInterval(() => {
             if (!this.isPaused) {
                 this.timeLeft--;
                 this.updateTimerDisplay();
-                
+
                 if (this.timeLeft <= 10) {
                     this.timerElement.classList.add('warning');
                 }
-                
+
                 if (this.timeLeft <= 0) {
                     this.timeExpired();
                 }
@@ -259,7 +259,7 @@ class MillionaireGame {
         }
 
         this.questionElement.textContent = question.question;
-        
+
         Object.entries(question.answers).forEach(([letter, answer]) => {
             const button = this.answerButtons[letter];
             button.innerHTML = `<span class="letter">${letter}:</span> «${answer}»`;
@@ -290,15 +290,15 @@ class MillionaireGame {
 
     useFiftyFifty() {
         if (this.usedLifelines.fiftyFifty) return;
-        
+
         const question = this.questions[this.currentQuestion];
         const wrongAnswers = Object.keys(question.answers)
             .filter(letter => letter !== question.correct);
-        
+
         const answersToHide = wrongAnswers
             .sort(() => Math.random() - 0.5)
             .slice(0, 2);
-            
+
         answersToHide.forEach(letter => {
             this.answerButtons[letter].style.visibility = 'hidden';
         });
@@ -310,7 +310,7 @@ class MillionaireGame {
 
     usePhoneFriend() {
         if (this.usedLifelines.phoneFriend) return;
-        
+
         const question = this.questions[this.currentQuestion];
         const confidence = Math.random();
         let message;
@@ -332,7 +332,7 @@ class MillionaireGame {
 
     useAskAudience() {
         if (this.usedLifelines.askAudience) return;
-        
+
         const question = this.questions[this.currentQuestion];
         const results = {};
         let remaining = 100;
@@ -370,7 +370,7 @@ class MillionaireGame {
         document.querySelectorAll('.prize-row').forEach(row => {
             row.classList.remove('current');
         });
-        
+
         const currentRow = document.getElementById(String(this.currentQuestion + 1));
         if (currentRow) {
             currentRow.classList.add('current');
@@ -453,15 +453,15 @@ class MillionaireGame {
     processAnswer(selectedAnswer) {
         this.stopTimer();
         const question = this.questions[this.currentQuestion];
-        
+
         if (selectedAnswer === question.correct) {
             this.answerButtons[selectedAnswer].classList.add('correct');
             this.showHostMessage(this.getRandomPhrase('correct'));
-            
+
             setTimeout(() => {
                 const currentPrize = this.prizes[this.currentQuestion];
                 this.showHostMessage(`Вы выиграли ${currentPrize} рублей!`);
-                
+
                 setTimeout(() => {
                     this.currentQuestion++;
                     if (this.currentQuestion < this.questions.length) {
