@@ -4,13 +4,14 @@ This project contains a small web game that mimics "Who Wants to Be a Millionair
 
 ## Running the tests
 
-Install dependencies before running tests:
+Before running the tests you must install the project dependencies.
+For local development use:
 
 ```bash
 npm install
 ```
 
-In automated environments you may prefer:
+In automated environments you may prefer the stricter:
 
 ```bash
 npm ci
@@ -23,6 +24,16 @@ npm test
 ```
 
 The test environment uses JSDOM to simulate the game DOM and verify behaviours of `MillionaireGame`.
+
+## Continuous integration
+
+For automated testing pipelines you can install dependencies using the helper
+script in `scripts/setup-ci.sh`:
+
+```bash
+./scripts/setup-ci.sh
+npm test
+```
 
 ## Bot configuration
 
