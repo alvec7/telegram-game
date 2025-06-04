@@ -52,6 +52,8 @@ class MillionaireGame {
         
         this.winnerModal = document.getElementById('winner-modal');
         this.consolationModal = document.getElementById('consolation-modal');
+        this.rulesModal = document.getElementById('rules-modal');
+        this.rulesContinueButton = document.getElementById('rules-continue');
         
         this.initializeElements();
         this.initializeEventListeners();
@@ -61,10 +63,12 @@ class MillionaireGame {
         // Находим все кнопки закрытия
         document.querySelectorAll('.close-button').forEach(button => {
             button.addEventListener('click', (e) => {
-                const modal = e.target.closest('.confirmation-modal, .prize-modal');
+                const modal = e.target.closest('.confirmation-modal, .prize-modal, .rules-modal');
                 if (modal) {
                     if (modal.id === 'confirmation-modal') {
                         this.hideConfirmationModal();
+                    } else if (modal.id === 'rules-modal') {
+                        this.hideRulesModal();
                     } else {
                         modal.style.display = 'none';
                     }
@@ -108,6 +112,10 @@ class MillionaireGame {
         this.confirmNoButton.addEventListener('click', () => this.handleConfirmation(false));
 
         this.startButton.addEventListener('click', () => this.startFirstQuestion());
+
+        if (this.rulesContinueButton) {
+            this.rulesContinueButton.addEventListener('click', () => this.hideRulesModal());
+        }
         
         // Добавляем обработчик для кнопки "Сыграть снова"
         document.querySelector('.play-again').addEventListener('click', () => {
@@ -154,12 +162,6 @@ class MillionaireGame {
     }
 
     startGame() {
-        const introMessages = [
-            "Приветствуем вас на игре «Кто хочет стать миллионером»! Вам предстоит проверить свои знания о морском деле и побороться за миллион.",
-            "Для ответа на каждый вопрос у вас будет ровно минута. Следите за временем — секундомер справа от вас.",
-            "Наш спонсор – маркетплейс яхтенных туров ImSkipper – желает вам семь футов под килем! Отдать швартовы!"
-        ];
-
         this.questionElement.style.visibility = 'hidden';
         Object.values(this.answerButtons).forEach(button => {
             button.style.visibility = 'hidden';
@@ -168,21 +170,7 @@ class MillionaireGame {
         this.startButtonContainer.style.display = 'none';
         this.lifelinesContainer.style.display = 'none';
 
-        this.showHostMessage(introMessages[0]);
-        
-        setTimeout(() => {
-            this.showHostMessage(introMessages[1]);
-            
-            setTimeout(() => {
-                this.showHostMessage(introMessages[2]);
-                
-                setTimeout(() => {
-                    this.startButtonContainer.style.display = 'block';
-                }, 5000);
-                
-            }, 5000);
-            
-        }, 5000);
+        this.showRulesModal();
     }
 
     startFirstQuestion() {
@@ -382,6 +370,19 @@ class MillionaireGame {
 
     showConsolationModal() {
         this.consolationModal.style.display = 'flex';
+    }
+
+    showRulesModal() {
+        if (this.rulesModal) {
+            this.rulesModal.style.display = 'flex';
+        }
+    }
+
+    hideRulesModal() {
+        if (this.rulesModal) {
+            this.rulesModal.style.display = 'none';
+        }
+        this.startButtonContainer.style.display = 'block';
     }
 
     winGame() {
