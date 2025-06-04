@@ -1,6 +1,8 @@
 :root {
     --bg-color: #D7ECFD;
-    --primary-color: #35A2F3;
+    --primary-color: #1565C0;
+    --primary-color-dark: #0D47A1;
+    --primary-gradient: linear-gradient(to bottom, var(--primary-color), var(--primary-color-dark));
     --dark-color: #282E33;
     --success-color: #35F2C5;
     --error-color: #F23A35;
@@ -35,11 +37,11 @@ body {
 .header h1 {
     font-family: 'Montserrat', sans-serif;
     font-size: 2.5em;
-    text-shadow: 0 0 10px rgba(53, 162, 243, 0.5);
+    text-shadow: 0 0 10px rgba(21, 101, 192, 0.5);
     color: white;
     margin: 0;
     padding: 20px;
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     border-radius: 15px;
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
@@ -70,7 +72,7 @@ body {
 
 .lifelines button {
     padding: 10px 20px;
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     color: white;
     border: none;
     cursor: pointer;
@@ -90,7 +92,7 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
@@ -135,7 +137,7 @@ body {
     font-size: 1.4em;
     margin-bottom: 25px;
     padding: 25px 40px;
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     text-align: center;
     border: none;
     position: relative;
@@ -165,7 +167,7 @@ body {
 
 .answer {
     padding: 15px 40px;
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     color: white;
     border: none;
     cursor: pointer;
@@ -360,7 +362,7 @@ body {
 }
 
 .modal-content {
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     padding: 30px;
     border-radius: 15px;
     text-align: center;
@@ -404,7 +406,7 @@ body {
 .start-button {
     padding: 25px 80px;  /* Увеличим размер кнопки */
     font-size: 1.8em;  /* Увеличим размер шрифта */
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     color: white;
     border: none;
     cursor: pointer;
@@ -490,7 +492,7 @@ body {
 .prize-button {
     display: inline-block;
     padding: 15px 40px;
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     color: white;
     text-decoration: none;
     font-size: 1.2em;
@@ -505,7 +507,7 @@ body {
 }
 
 .prize-button.play-again:hover {
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(65, 105, 225, 0.3);
 }
