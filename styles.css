@@ -235,6 +235,26 @@ body {
     margin-right: 5px;
 }
 
+.prize-table {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.prize-row {
+    padding: 5px 10px;
+    background: var(--dark-color);
+    border-radius: 5px;
+    text-align: center;
+}
+
+.prize-row.current {
+    background: var(--accent-color);
+    color: black;
+    font-weight: bold;
+}
+
 /* Добавим декоративные элементы */
 .game-container::before,
 .game-container::after {
