@@ -63,6 +63,9 @@ body {
     transition: all 0.3s ease;
     font-size: 1em;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
 
@@ -80,6 +83,8 @@ body {
 
 .lifelines button:hover:not(:disabled) {
     background: #282E33;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 
 .lifelines button:disabled {
