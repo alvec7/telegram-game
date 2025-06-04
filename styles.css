@@ -106,6 +106,36 @@ body {
     cursor: not-allowed;
 }
 
+/* Tooltip for lifeline buttons */
+.lifeline {
+    position: relative;
+    display: inline-flex;
+}
+
+.lifeline::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.lifeline:hover::after,
+.lifeline:focus-within::after,
+.lifeline:active::after {
+    opacity: 1;
+}
+
 .host-message {
     width: 100%;
     box-sizing: border-box;
