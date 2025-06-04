@@ -65,8 +65,10 @@ class MillionaireGame {
                 if (modal) {
                     if (modal.id === 'confirmation-modal') {
                         this.hideConfirmationModal();
-                    } else {
-                        modal.style.display = 'none';
+                    } else if (modal.id === 'winner-modal') {
+                        this.hideWinnerModal();
+                    } else if (modal.id === 'consolation-modal') {
+                        this.hideConsolationModal();
                     }
                 }
             });
@@ -111,8 +113,7 @@ class MillionaireGame {
         
         // Добавляем обработчик для кнопки "Сыграть снова"
         document.querySelector('.play-again').addEventListener('click', () => {
-            this.consolationModal.style.display = 'none';
-            this.resetGame();
+            this.hideConsolationModal(() => this.resetGame());
         });
     }
 
@@ -378,10 +379,35 @@ class MillionaireGame {
 
     showWinnerModal() {
         this.winnerModal.style.display = 'flex';
+        this.winnerModal.classList.remove('fade-out');
+        void this.winnerModal.offsetWidth;
+        this.winnerModal.classList.add('fade-in');
     }
 
     showConsolationModal() {
         this.consolationModal.style.display = 'flex';
+        this.consolationModal.classList.remove('fade-out');
+        void this.consolationModal.offsetWidth;
+        this.consolationModal.classList.add('fade-in');
+    }
+
+    hideWinnerModal() {
+        this.winnerModal.classList.remove('fade-in');
+        this.winnerModal.classList.add('fade-out');
+        this.winnerModal.addEventListener('animationend', () => {
+            this.winnerModal.style.display = 'none';
+            this.winnerModal.classList.remove('fade-out');
+        }, { once: true });
+    }
+
+    hideConsolationModal(callback) {
+        this.consolationModal.classList.remove('fade-in');
+        this.consolationModal.classList.add('fade-out');
+        this.consolationModal.addEventListener('animationend', () => {
+            this.consolationModal.style.display = 'none';
+            this.consolationModal.classList.remove('fade-out');
+            if (callback) callback();
+        }, { once: true });
     }
 
     winGame() {
