@@ -24,7 +24,8 @@ class MillionaireGame {
         this.usedLifelines = {
             fiftyFifty: false,
             phoneFriend: false,
-            askAudience: false
+            askAudience: false,
+            lastQuestionUsed: -1
         };
         
         this.timer = null;
@@ -121,7 +122,8 @@ class MillionaireGame {
         this.usedLifelines = {
             fiftyFifty: false,
             phoneFriend: false,
-            askAudience: false
+            askAudience: false,
+            lastQuestionUsed: -1
         };
         
         this.timeLeft = 60;
@@ -271,8 +273,11 @@ class MillionaireGame {
 
     checkAnswer(selectedAnswer) {
         const thinkingTime = (Date.now() - this.thinkingStartTime) / 1000;
-        const usedLifelinesOnCurrentQuestion = Object.values(this.usedLifelines).some(used => used) && 
-            this.usedLifelines.lastQuestionUsed === this.currentQuestion;
+        const lifelineUsed = this.usedLifelines.fiftyFifty ||
+                             this.usedLifelines.phoneFriend ||
+                             this.usedLifelines.askAudience;
+        const usedLifelinesOnCurrentQuestion =
+            lifelineUsed && this.usedLifelines.lastQuestionUsed === this.currentQuestion;
 
         if (thinkingTime > 25 || usedLifelinesOnCurrentQuestion) {
             this.selectedAnswer = selectedAnswer;
