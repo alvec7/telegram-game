@@ -459,4 +459,9 @@ class MillionaireGame {
     }
 }
 
-window.onload = () => new MillionaireGame(); 
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = MillionaireGame;
+} else {
+    window.onload = () => new MillionaireGame();
+}
+
