@@ -155,7 +155,7 @@ body {
     color: white;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s, box-shadow 0.3s;
     font-size: 1.2em;
     position: relative;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
@@ -175,8 +175,8 @@ body {
 
 .answer:hover {
     background: #282E33;
-    transform: none;
-    box-shadow: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .answer.correct {
@@ -361,7 +361,7 @@ body {
     cursor: pointer;
     position: relative;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
-    transition: all 0.3s ease;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .start-button::before {
@@ -378,6 +378,8 @@ body {
 
 .start-button:hover {
     background: #282E33;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .prize-modal {
@@ -494,4 +496,6 @@ body {
 .lifelines button:hover:not(:disabled),
 .start-button:hover {
     background: #282E33;
-} 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
