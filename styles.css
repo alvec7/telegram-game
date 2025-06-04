@@ -235,7 +235,7 @@ body {
     top: 50%;
 }
 
-/* Обновим медиа-запрос */
+/* Медиа‑запрос для мобильных устройств */
 @media (max-width: 768px) {
     .game-area {
         grid-template-columns: 1fr;
