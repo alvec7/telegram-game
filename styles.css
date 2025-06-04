@@ -281,12 +281,12 @@ body {
     .game-area {
         grid-template-columns: 1fr;
     }
-    
+
     .prize-table {
         order: -1;
         margin-bottom: 20px;
     }
-    
+
     .lifelines {
         flex-direction: column;
         align-items: center;
