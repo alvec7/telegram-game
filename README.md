@@ -4,10 +4,16 @@ This project contains a small web game that mimics "Who Wants to Be a Millionair
 
 ## Running the tests
 
-Install dependencies once:
+Install dependencies before running tests:
 
 ```bash
 npm install
+```
+
+In automated environments you may prefer:
+
+```bash
+npm ci
 ```
 
 Run the Jest suite:
