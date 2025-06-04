@@ -1,8 +1,16 @@
+:root {
+    --primary-bg: linear-gradient(to bottom, #001f3f, #0356a6);
+    --accent-color: #35A2F3;
+    --dark-bg: #282E33;
+    --heading-color: #ffd700;
+    --heading-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+}
+
 body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    background: #D7ECFD;
+    background: var(--primary-bg);
     color: white;
     min-height: 100vh;
 }
@@ -21,11 +29,11 @@ body {
 .header h1 {
     font-family: 'Montserrat', sans-serif;
     font-size: 2.5em;
-    text-shadow: 0 0 10px rgba(53, 162, 243, 0.5);
-    color: white;
+    text-shadow: var(--heading-shadow);
+    color: var(--heading-color);
     margin: 0;
     padding: 20px;
-    background: #35A2F3;
+    background: var(--accent-color);
     border-radius: 15px;
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
@@ -56,7 +64,7 @@ body {
 
 .lifelines button {
     padding: 10px 20px;
-    background: #35A2F3;
+    background: var(--accent-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -73,13 +81,13 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--accent-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
 
 .lifelines button:hover:not(:disabled) {
-    background: #282E33;
+    background: var(--dark-bg);
 }
 
 .lifelines button:disabled {
@@ -91,7 +99,7 @@ body {
     width: 100%;
     box-sizing: border-box;
     padding: 25px;
-    background: #282E33;
+    background: var(--dark-bg);
     border-radius: 15px;
     text-align: center;
     font-style: italic;
@@ -116,7 +124,7 @@ body {
     font-size: 1.4em;
     margin-bottom: 25px;
     padding: 25px 40px;
-    background: #35A2F3;
+    background: var(--accent-color);
     text-align: center;
     border: none;
     position: relative;
@@ -130,7 +138,7 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--accent-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
@@ -146,7 +154,7 @@ body {
 
 .answer {
     padding: 15px 40px;
-    background: #35A2F3;
+    background: var(--accent-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -163,13 +171,13 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--accent-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
 
 .answer:hover {
-    background: #282E33;
+    background: var(--dark-bg);
     transform: none;
     box-shadow: none;
 }
@@ -212,7 +220,7 @@ body {
 }
 
 .answer .letter {
-    color: #ffd700;
+    color: var(--heading-color);
     margin-right: 5px;
 }
 
@@ -306,7 +314,7 @@ body {
 }
 
 .modal-content {
-    background: #35A2F3;
+    background: var(--accent-color);
     padding: 30px;
     border-radius: 15px;
     text-align: center;
@@ -350,7 +358,7 @@ body {
 .start-button {
     padding: 25px 80px;  /* Увеличим размер кнопки */
     font-size: 1.8em;  /* Увеличим размер шрифта */
-    background: #35A2F3;
+    background: var(--accent-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -366,13 +374,13 @@ body {
     left: 2px;
     right: 2px;
     bottom: 2px;
-    background: #35A2F3;
+    background: var(--accent-color);
     z-index: -1;
     clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
 }
 
 .start-button:hover {
-    background: #282E33;
+    background: var(--dark-bg);
 }
 
 .prize-modal {
@@ -390,7 +398,7 @@ body {
 
 .prize-content {
     max-width: 600px;
-    background: linear-gradient(45deg, #35A2F3 0%, #282E33 100%);
+    background: linear-gradient(45deg, var(--accent-color) 0%, var(--dark-bg) 100%);
     padding: 40px;
     text-align: center;
     line-height: 1.6;
@@ -400,10 +408,10 @@ body {
 }
 
 .prize-content h2 {
-    color: #ffd700;
+    color: var(--heading-color);
     font-size: 2em;
     margin-bottom: 30px;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    text-shadow: var(--heading-shadow);
 }
 
 .prize-content p {
@@ -413,7 +421,7 @@ body {
 }
 
 .promo-code {
-    background: #282E33;
+    background: var(--dark-bg);
     padding: 5px 15px;
     border-radius: 5px;
     font-weight: bold;
@@ -434,7 +442,7 @@ body {
 .prize-button {
     display: inline-block;
     padding: 15px 40px;
-    background: #35A2F3;
+    background: var(--accent-color);
     color: white;
     text-decoration: none;
     font-size: 1.2em;
@@ -445,11 +453,11 @@ body {
 }
 
 .prize-button.play-again {
-    background: #282E33;
+    background: var(--dark-bg);
 }
 
 .prize-button.play-again:hover {
-    background: #35A2F3;
+    background: var(--accent-color);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(65, 105, 225, 0.3);
 }
@@ -469,7 +477,7 @@ body {
     height: 30px;
     background: transparent;
     border: none;
-    color: #ffd700;
+    color: var(--heading-color);
     font-size: 24px;
     cursor: pointer;
     display: flex;
@@ -488,5 +496,5 @@ body {
 .answer:hover,
 .lifelines button:hover:not(:disabled),
 .start-button:hover {
-    background: #282E33;
+    background: var(--dark-bg);
 } 
