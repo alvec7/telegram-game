@@ -310,10 +310,12 @@ class MillionaireGame {
         let message;
 
         if (confidence > 0.7) {
-            message = `Я уверен на 90%, что правильный ответ - ${question.correct}`;
+            const correctText = question.answers[question.correct];
+            message = `Я уверен на 90%, что правильный ответ - ${question.correct}: «${correctText}»`;
         } else {
-            const randomAnswer = Object.keys(question.answers)[Math.floor(Math.random() * 4)];
-            message = `Я не совсем уверен, но возможно это ${randomAnswer}`;
+            const randomLetter = Object.keys(question.answers)[Math.floor(Math.random() * 4)];
+            const randomText = question.answers[randomLetter];
+            message = `Я не совсем уверен, но возможно это ${randomLetter}: «${randomText}»`;
         }
 
         this.showHostMessage(`Ваш друг говорит: "${message}"`);
