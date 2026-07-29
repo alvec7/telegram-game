@@ -2,93 +2,159 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1026">
     <title>Кто хочет стать миллионером</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="game-container">
-        <div class="header">
-            <h1>Кто хочет стать миллионером</h1>
-        </div>
+    <div class="app" id="app">
 
-        <div class="host-message" id="host-message">
-            Добро пожаловать в игру!
-        </div>
-
-        <div class="game-area">
-            <div class="question-container">
-                <div class="timer" id="timer">60</div>
-                <div class="question" id="question"></div>
-                <div class="answers">
-                    <button class="answer" id="A"></button>
-                    <button class="answer" id="B"></button>
-                    <button class="answer" id="C"></button>
-                    <button class="answer" id="D"></button>
+        <!-- ═══════════ Экран приветствия ═══════════ -->
+        <section class="screen screen--intro is-active" id="intro-screen">
+            <div class="intro">
+                <div class="intro__emblem" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" width="72" height="72" fill="none">
+                        <path d="M32 6v44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M32 8c14 8 18 22 16 34H32V8z" fill="currentColor" opacity="0.9"/>
+                        <path d="M32 14c-9 7-12 18-11 26h11V14z" fill="currentColor" opacity="0.55"/>
+                        <path d="M12 52c4 4 9 6 20 6s16-2 20-6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
                 </div>
+                <h1 class="intro__title">Кто хочет стать миллионером</h1>
+                <p class="intro__subtitle">Специальный выпуск: яхтинг и парусные путешествия</p>
+                <ul class="intro__rules">
+                    <li><span class="intro__rule-icon">🏆</span>15 вопросов на пути к миллиону</li>
+                    <li><span class="intro__rule-icon">⏱️</span>60 секунд на каждый ответ</li>
+                    <li><span class="intro__rule-icon">🛟</span>Три подсказки — используйте с умом</li>
+                </ul>
+                <p class="intro__sponsor">Партнёр игры — маркетплейс яхтенных туров <strong>ImSkipper</strong>. Семь футов под килем!</p>
+                <button class="btn btn--primary btn--lg" id="start-button">Начать игру</button>
+            </div>
+        </section>
+
+        <!-- ═══════════ Игровой экран ═══════════ -->
+        <section class="screen screen--game" id="game-screen">
+            <header class="topbar">
+                <button class="topbar__ladder-toggle" id="ladder-toggle" aria-label="Таблица выигрышей">
+                    <span class="topbar__step" id="question-counter">Вопрос 1 из 15</span>
+                    <span class="topbar__prize" id="current-prize">100 ₽</span>
+                    <svg class="topbar__chevron" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+                        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="timer" id="timer" role="timer" aria-live="polite">
+                    <svg class="timer__ring" viewBox="0 0 48 48" aria-hidden="true">
+                        <circle class="timer__track" cx="24" cy="24" r="20"/>
+                        <circle class="timer__progress" id="timer-progress" cx="24" cy="24" r="20"/>
+                    </svg>
+                    <span class="timer__value" id="timer-value">60</span>
+                </div>
+            </header>
+
+            <div class="host" id="host-message" aria-live="polite"></div>
+
+            <div class="question-card">
+                <p class="question-card__text" id="question"></p>
             </div>
 
-            <div class="lifelines">
-                <button id="fifty-fifty"><i class="fas fa-percent"></i>50/50</button>
-                <button id="phone-friend"><i class="fas fa-phone"></i>Звонок другу</button>
-                <button id="ask-audience"><i class="fas fa-user-friends"></i>Помощь зала</button>
+            <div class="answers" id="answers">
+                <button class="answer" id="A" data-letter="A"><span class="answer__letter">A</span><span class="answer__text"></span></button>
+                <button class="answer" id="B" data-letter="B"><span class="answer__letter">B</span><span class="answer__text"></span></button>
+                <button class="answer" id="C" data-letter="C"><span class="answer__letter">C</span><span class="answer__text"></span></button>
+                <button class="answer" id="D" data-letter="D"><span class="answer__letter">D</span><span class="answer__text"></span></button>
             </div>
-        </div>
-        <div class="prize-table">
-            <div class="prize-row" id="1">100</div>
-            <div class="prize-row" id="2">200</div>
-            <div class="prize-row" id="3">300</div>
-            <div class="prize-row" id="4">500</div>
-            <div class="prize-row" id="5">1000</div>
-            <div class="prize-row" id="6">2000</div>
-            <div class="prize-row" id="7">4000</div>
-            <div class="prize-row" id="8">8000</div>
-            <div class="prize-row" id="9">16000</div>
-            <div class="prize-row" id="10">32000</div>
-            <div class="prize-row" id="11">64000</div>
-            <div class="prize-row" id="12">125000</div>
-            <div class="prize-row" id="13">250000</div>
-            <div class="prize-row" id="14">500000</div>
-            <div class="prize-row" id="15">1000000</div>
-        </div>
-        <div class="start-button-container" id="start-button-container">
-            <button id="start-button" class="start-button">Начать игру</button>
-        </div>
-    </div>
-    <div class="confirmation-modal" id="confirmation-modal">
-        <div class="modal-content">
-            <button class="close-button">×</button>
-            <p>Кажется ваши мысли штормит. Вы уверены в ответе?</p>
-            <div class="modal-buttons">
-                <button id="confirm-yes">Да</button>
-                <button id="confirm-no">Нет</button>
+
+            <div class="audience-chart" id="audience-chart" hidden>
+                <div class="audience-chart__col"><div class="audience-chart__bar" data-letter="A"></div><span class="audience-chart__pct"></span><span class="audience-chart__label">A</span></div>
+                <div class="audience-chart__col"><div class="audience-chart__bar" data-letter="B"></div><span class="audience-chart__pct"></span><span class="audience-chart__label">B</span></div>
+                <div class="audience-chart__col"><div class="audience-chart__bar" data-letter="C"></div><span class="audience-chart__pct"></span><span class="audience-chart__label">C</span></div>
+                <div class="audience-chart__col"><div class="audience-chart__bar" data-letter="D"></div><span class="audience-chart__pct"></span><span class="audience-chart__label">D</span></div>
             </div>
-        </div>
-    </div>
-    <div class="prize-modal" id="winner-modal">
-        <div class="modal-content prize-content">
-            <button class="close-button">×</button>
-            <h2>🏆 Победа!</h2>
-            <p>Поздравляем с победой! Вы покорили нас своими знаниями о море и яхтах. В знак восхищения маркетплейс яхтенных туров ImSkipper дарит вам промокод <span class="promo-code">WINNER</span> на скидку €50 при заказе круиза или регаты.</p>
-            <a href="https://imskipper.net?utm_source=game" class="prize-button" target="_blank">Получить подарок</a>
+
+            <footer class="lifelines">
+                <button class="lifeline" id="fifty-fifty" aria-label="Подсказка 50 на 50">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+                        <path d="M5 19L19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="7.5" cy="7.5" r="3" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="16.5" cy="16.5" r="3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span>50:50</span>
+                </button>
+                <button class="lifeline" id="phone-friend" aria-label="Подсказка Звонок другу">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+                        <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Звонок другу</span>
+                </button>
+                <button class="lifeline" id="ask-audience" aria-label="Подсказка Помощь зала">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="2"/>
+                        <path d="M2.5 19c.8-3 3.4-4.5 6.5-4.5s5.7 1.5 6.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M16 5.5a3.5 3.5 0 0 1 0 5.4M18.5 13.6c1.7.8 2.7 2 3 4.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Помощь зала</span>
+                </button>
+            </footer>
+        </section>
+
+        <!-- ═══════════ Таблица выигрышей (шторка) ═══════════ -->
+        <div class="ladder-sheet" id="ladder-sheet" hidden>
+            <div class="ladder-sheet__backdrop" data-close-ladder></div>
+            <div class="ladder-sheet__panel" role="dialog" aria-label="Таблица выигрышей">
+                <div class="ladder-sheet__grip" aria-hidden="true"></div>
+                <h2 class="ladder-sheet__title">Таблица выигрышей</h2>
+                <ol class="ladder" id="prize-ladder" reversed></ol>
+            </div>
         </div>
     </div>
 
-    <div class="prize-modal" id="consolation-modal">
-        <div class="modal-content prize-content">
-            <button class="close-button">×</button>
-            <h2>🎁 Ваш подарок</h2>
-            <p>Пусть фортуна не на вашей стороне, но любые усилия достойны награды. Маркетплейс яхтенных туров ImSkipper дарит вам промокод <span class="promo-code">GAME</span> на скидку €25 при заказе круиза или регаты.</p>
-            <div class="prize-buttons">
-                <a href="https://imskipper.net?utm_source=game" class="prize-button" target="_blank">Получить подарок</a>
-                <button class="prize-button play-again">Сыграть снова</button>
+    <!-- ═══════════ Модальные окна ═══════════ -->
+    <div class="modal" id="confirmation-modal" hidden>
+        <div class="modal__backdrop"></div>
+        <div class="modal__card" role="alertdialog" aria-label="Подтверждение ответа">
+            <div class="modal__icon" aria-hidden="true">🤔</div>
+            <p class="modal__text">Кажется, ваши мысли штормит. Это окончательный ответ?</p>
+            <div class="modal__actions">
+                <button class="btn btn--ghost" id="confirm-no">Ещё подумаю</button>
+                <button class="btn btn--primary" id="confirm-yes">Да, отвечаю!</button>
             </div>
         </div>
     </div>
+
+    <div class="modal" id="winner-modal" hidden>
+        <div class="modal__backdrop"></div>
+        <div class="modal__card modal__card--prize" role="dialog" aria-label="Победа">
+            <div class="modal__icon" aria-hidden="true">🏆</div>
+            <h2 class="modal__title">Миллион ваш!</h2>
+            <p class="modal__text">Вы покорили нас знаниями о море и яхтах. Маркетплейс яхтенных туров ImSkipper дарит вам промокод на скидку <strong>€50</strong> при заказе круиза или регаты.</p>
+            <div class="promo"><span class="promo__code">WINNER</span><button class="promo__copy" data-copy="WINNER">Скопировать</button></div>
+            <div class="modal__actions modal__actions--column">
+                <a href="https://imskipper.net?utm_source=game" class="btn btn--primary" target="_blank" rel="noopener">Получить подарок</a>
+                <button class="btn btn--ghost play-again">Сыграть ещё раз</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="consolation-modal" hidden>
+        <div class="modal__backdrop"></div>
+        <div class="modal__card modal__card--prize" role="dialog" aria-label="Итоги игры">
+            <div class="modal__icon" aria-hidden="true">⚓</div>
+            <h2 class="modal__title">Игра окончена</h2>
+            <p class="modal__result" id="final-result"></p>
+            <p class="modal__text">Любые усилия достойны награды: ImSkipper дарит вам промокод на скидку <strong>€25</strong> при заказе круиза или регаты.</p>
+            <div class="promo"><span class="promo__code">GAME</span><button class="promo__copy" data-copy="GAME">Скопировать</button></div>
+            <div class="modal__actions modal__actions--column">
+                <a href="https://imskipper.net?utm_source=game" class="btn btn--primary" target="_blank" rel="noopener">Получить подарок</a>
+                <button class="btn btn--ghost play-again">Сыграть ещё раз</button>
+            </div>
+        </div>
+    </div>
+
     <script src="questions.js"></script>
     <script src="game.js"></script>
 </body>

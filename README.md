@@ -1,45 +1,48 @@
-# Telegram Millionaire Game
+# Telegram Millionaire Game 🛥️
 
-This project contains a small web game that mimics "Who Wants to Be a Millionaire". The repository now includes a Jest based test suite.
+Мини-приложение для Telegram — игра «Кто хочет стать миллионером» на тему яхтинга и парусных путешествий. Партнёр игры — маркетплейс яхтенных туров ImSkipper.
 
-## Running the tests
+## Как устроена игра
 
-Before running the tests you must install the project dependencies.
-For local development use:
+- **15 вопросов** — по 5 из каждого уровня сложности (лёгкие → средние → сложные).
+- **Банк из 45 вопросов** (`questions.js`): перед каждой партией из каждого уровня случайно выбирается 5 вопросов, а варианты ответов перемешиваются — повторные партии не совпадают.
+- **60 секунд** на каждый вопрос, с круговым индикатором времени.
+- **Три подсказки**: 50:50, звонок другу, помощь зала (с анимированной диаграммой голосов).
+- **Несгораемые суммы**: 1 000 ₽ (вопрос 5) и 32 000 ₽ (вопрос 10).
+- Результат игры отправляется боту через `Telegram.WebApp.sendData`.
+
+## Структура
+
+| Файл | Назначение |
+|---|---|
+| `index.html` | Разметка мини-приложения (экраны, модальные окна, таблица выигрышей) |
+| `styles.css` | Дизайн-система: токены в `:root`, мобайл-фёрст, тёмная морская тема |
+| `game.js` | Логика игры (`MillionaireGame`) + обёртка над Telegram WebApp API |
+| `questions.js` | Банк вопросов по уровням сложности, перемешивание, реплики ведущего |
+| `bot.js` | Telegram-бот: кнопка запуска игры и обработка результатов |
+
+## Тесты
+
+Установите зависимости и запустите Jest (окружение JSDOM):
 
 ```bash
-npm install
-```
-
-In automated environments you may prefer the stricter:
-
-```bash
-npm ci
-```
-
-Run the Jest suite:
-
-```bash
+npm install   # или npm ci в CI
 npm test
 ```
 
-The test environment uses JSDOM to simulate the game DOM and verify behaviours of `MillionaireGame`.
-
-## Continuous integration
-
-For automated testing pipelines you can install dependencies using the helper
-script in `scripts/setup-ci.sh`:
+Для CI можно использовать хелпер:
 
 ```bash
 ./scripts/setup-ci.sh
 npm test
 ```
 
-## Bot configuration
+## Запуск бота
 
-The Telegram bot expects its token to be supplied via the `BOT_TOKEN` environment
-variable. Start the bot with:
+Токен бота передаётся через переменную окружения `BOT_TOKEN`, URL мини-приложения — через `WEBAPP_URL`:
 
 ```bash
-BOT_TOKEN=your-telegram-token node bot.js
+BOT_TOKEN=your-telegram-token WEBAPP_URL=https://your-domain/index.html node bot.js
 ```
+
+> Мини-приложение должно быть доступно по HTTPS (например, GitHub Pages), иначе Telegram не откроет его как Web App.

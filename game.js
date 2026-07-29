@@ -1,125 +1,212 @@
-const tg = window.Telegram.WebApp;
+/* ═══════════════════════════════════════════════════════════════
+   «Кто хочет стать миллионером» — Telegram Mini App
+   ═══════════════════════════════════════════════════════════════ */
 
-// Инициализация WebApp
-tg.expand(); // Развернуть на весь экран
-tg.ready(); // Сообщить Telegram что приложение готово
+/**
+ * Безопасная обёртка над Telegram WebApp API: игра работает
+ * и внутри Telegram, и в обычном браузере (для отладки).
+ */
+const TG = (() => {
+    const webApp = typeof window !== "undefined" && window.Telegram && window.Telegram.WebApp
+        ? window.Telegram.WebApp
+        : null;
 
-// Для отправки результатов игры в Telegram:
-function sendGameResults(score) {
-    tg.sendData(JSON.stringify({
-        score: score,
-        timestamp: Date.now()
-    }));
-}
+    return {
+        init() {
+            if (!webApp) return;
+            try {
+                webApp.ready();
+                webApp.expand();
+                if (typeof webApp.setHeaderColor === "function") {
+                    webApp.setHeaderColor("#0b1026");
+                }
+                if (typeof webApp.setBackgroundColor === "function") {
+                    webApp.setBackgroundColor("#0b1026");
+                }
+                if (typeof webApp.disableVerticalSwipes === "function") {
+                    webApp.disableVerticalSwipes();
+                }
+            } catch (e) { /* старые клиенты Telegram */ }
+        },
+        haptic(type) {
+            const h = webApp && webApp.HapticFeedback;
+            if (!h) return;
+            try {
+                if (type === "success" || type === "error" || type === "warning") {
+                    h.notificationOccurred(type);
+                } else {
+                    h.impactOccurred(type || "light");
+                }
+            } catch (e) { /* noop */ }
+        },
+        sendResult(payload) {
+            if (!webApp || typeof webApp.sendData !== "function") return;
+            try {
+                webApp.sendData(JSON.stringify(payload));
+            } catch (e) { /* noop */ }
+        }
+    };
+})();
 
 class MillionaireGame {
+    static PRIZES = [
+        100, 200, 300, 500, 1000,
+        2000, 4000, 8000, 16000, 32000,
+        64000, 125000, 250000, 500000, 1000000
+    ];
+
+    static MILESTONES = [4, 9]; // индексы несгораемых сумм (1 000 и 32 000)
+    static QUESTION_TIME = 60;  // секунд на вопрос
+
     constructor() {
-        this.currentQuestion = 0;
-        this.prizes = [
-            100, 200, 300, 500, 1000,      // 1-5
-            2000, 4000, 8000, 16000, 32000, // 6-10
-            64000, 125000, 250000, 500000, 1000000 // 11-15
-        ];
-        this.questions = [...questions];
-        this.usedLifelines = {
-            fiftyFifty: false,
-            phoneFriend: false,
-            askAudience: false,
-            lastQuestionUsed: -1
-        };
-
+        this.prizes = MillionaireGame.PRIZES;
+        this.pendingTimeouts = new Set();
         this.timer = null;
-        this.timeLeft = 60;
-        this.timerElement = document.getElementById('timer');
 
-        this.thinkingStartTime = null;
-        this.selectedAnswer = null;
-        this.confirmationModal = document.getElementById('confirmation-modal');
-        this.confirmYesButton = document.getElementById('confirm-yes');
-        this.confirmNoButton = document.getElementById('confirm-no');
+        this.cacheElements();
+        this.buildPrizeLadder();
+        this.bindEvents();
+        this.initializeNewGame();
+    }
 
-        this.isPaused = false;
+    /* ─── DOM ──────────────────────────────────────────────── */
 
-        this.startButtonContainer = document.getElementById('start-button-container');
-        this.startButton = document.getElementById('start-button');
+    cacheElements() {
+        const $ = (id) => document.getElementById(id);
+
+        this.introScreen = $("intro-screen");
+        this.gameScreen = $("game-screen");
+        this.startButton = $("start-button");
+
+        this.questionElement = $("question");
+        this.answerButtons = { A: $("A"), B: $("B"), C: $("C"), D: $("D") };
+        this.hostMessage = $("host-message");
+
+        this.timerElement = $("timer");
+        this.timerValue = $("timer-value");
+        this.timerProgress = $("timer-progress");
+
+        this.questionCounter = $("question-counter");
+        this.currentPrizeLabel = $("current-prize");
+        this.ladderToggle = $("ladder-toggle");
+        this.ladderSheet = $("ladder-sheet");
+        this.prizeLadder = $("prize-ladder");
+
+        this.audienceChart = $("audience-chart");
 
         this.lifelines = {
-            fiftyFifty: document.getElementById('fifty-fifty'),
-            phoneFriend: document.getElementById('phone-friend'),
-            askAudience: document.getElementById('ask-audience')
+            fiftyFifty: $("fifty-fifty"),
+            phoneFriend: $("phone-friend"),
+            askAudience: $("ask-audience")
         };
-        this.lifelinesContainer = document.querySelector('.lifelines');
 
-        this.winnerModal = document.getElementById('winner-modal');
-        this.consolationModal = document.getElementById('consolation-modal');
+        this.confirmationModal = $("confirmation-modal");
+        this.confirmYesButton = $("confirm-yes");
+        this.confirmNoButton = $("confirm-no");
+        this.winnerModal = $("winner-modal");
+        this.consolationModal = $("consolation-modal");
+        this.finalResult = $("final-result");
+    }
 
-        this.initializeElements();
-        this.initializeEventListeners();
-        this.initializeNewGame();
-        this.startGame();
+    bindEvents() {
+        const on = (el, event, handler) => {
+            if (el) el.addEventListener(event, handler);
+        };
 
-        // Находим все кнопки закрытия
-        document.querySelectorAll('.close-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const modal = e.target.closest('.confirmation-modal, .prize-modal');
-                if (modal) {
-                    if (modal.id === 'confirmation-modal') {
-                        this.hideConfirmationModal();
-                    } else if (modal.id === 'winner-modal') {
-                        this.hideWinnerModal();
-                    } else if (modal.id === 'consolation-modal') {
-                        this.hideConsolationModal();
-                    }
-                }
+        on(this.startButton, "click", () => {
+            TG.haptic("medium");
+            this.startFirstQuestion();
+        });
+
+        Object.entries(this.answerButtons).forEach(([letter, button]) => {
+            on(button, "click", () => this.checkAnswer(letter));
+        });
+
+        on(this.lifelines.fiftyFifty, "click", () => this.useFiftyFifty());
+        on(this.lifelines.phoneFriend, "click", () => this.usePhoneFriend());
+        on(this.lifelines.askAudience, "click", () => this.useAskAudience());
+
+        on(this.confirmYesButton, "click", () => this.handleConfirmation(true));
+        on(this.confirmNoButton, "click", () => this.handleConfirmation(false));
+
+        document.querySelectorAll(".play-again").forEach((button) => {
+            button.addEventListener("click", () => {
+                TG.haptic("medium");
+                this.hideModal(this.winnerModal);
+                this.hideModal(this.consolationModal, () => this.resetGame());
             });
         });
 
-        const mainButton = tg.MainButton;
-
-        document.getElementById('start-button').addEventListener('click', () => {
-            mainButton.setText('Играть снова');
-            mainButton.show();
+        on(this.ladderToggle, "click", () => this.toggleLadder(true));
+        document.querySelectorAll("[data-close-ladder]").forEach((el) => {
+            el.addEventListener("click", () => this.toggleLadder(false));
         });
 
-        mainButton.onClick(() => {
-            this.startFirstQuestion();
+        document.querySelectorAll(".promo__copy").forEach((button) => {
+            button.addEventListener("click", () => this.copyPromo(button));
         });
     }
 
-    initializeElements() {
-        this.questionElement = document.getElementById('question');
-        this.answerButtons = {
-            A: document.getElementById('A'),
-            B: document.getElementById('B'),
-            C: document.getElementById('C'),
-            D: document.getElementById('D')
-        };
-        this.hostMessage = document.getElementById('host-message');
+    buildPrizeLadder() {
+        if (!this.prizeLadder) return;
+
+        this.prizeLadder.innerHTML = "";
+        for (let i = this.prizes.length - 1; i >= 0; i--) {
+            const row = document.createElement("li");
+            row.className = "ladder__row";
+            row.dataset.index = String(i);
+            if (MillionaireGame.MILESTONES.includes(i) || i === this.prizes.length - 1) {
+                row.classList.add("ladder__row--milestone");
+            }
+            row.innerHTML =
+                `<span><span class="ladder__num">${i + 1}</span>${this.formatMoney(this.prizes[i])}</span>`;
+            this.prizeLadder.appendChild(row);
+        }
     }
 
-    initializeEventListeners() {
-        Object.entries(this.answerButtons).forEach(([letter, button]) => {
-            button.addEventListener('click', () => this.checkAnswer(letter));
-        });
+    /* ─── Вспомогательные ──────────────────────────────────── */
 
-        this.lifelines.fiftyFifty.addEventListener('click', () => this.useFiftyFifty());
-        this.lifelines.phoneFriend.addEventListener('click', () => this.usePhoneFriend());
-        this.lifelines.askAudience.addEventListener('click', () => this.useAskAudience());
-
-        this.confirmYesButton.addEventListener('click', () => this.handleConfirmation(true));
-        this.confirmNoButton.addEventListener('click', () => this.handleConfirmation(false));
-
-        this.startButton.addEventListener('click', () => this.startFirstQuestion());
-
-        // Добавляем обработчик для кнопки "Сыграть снова"
-        document.querySelector('.play-again').addEventListener('click', () => {
-            this.hideConsolationModal(() => this.resetGame());
-        });
+    formatMoney(value) {
+        return `${value.toLocaleString("ru-RU")} ₽`;
     }
+
+    setTrackedTimeout(fn, delay) {
+        const id = setTimeout(() => {
+            this.pendingTimeouts.delete(id);
+            fn();
+        }, delay);
+        this.pendingTimeouts.add(id);
+        return id;
+    }
+
+    clearAllTimeouts() {
+        this.pendingTimeouts.forEach((id) => clearTimeout(id));
+        this.pendingTimeouts.clear();
+    }
+
+    getRandomPhrase(type) {
+        const phrases = (typeof hostPhrases !== "undefined" && hostPhrases[type]) || [""];
+        return phrases[Math.floor(Math.random() * phrases.length)];
+    }
+
+    showHostMessage(message) {
+        if (!this.hostMessage) return;
+        this.hostMessage.classList.add("is-updating");
+        this.setTrackedTimeout(() => {
+            this.hostMessage.textContent = message;
+            this.hostMessage.classList.remove("is-updating");
+        }, 150);
+    }
+
+    /* ─── Жизненный цикл игры ──────────────────────────────── */
 
     initializeNewGame() {
         this.currentQuestion = 0;
-        this.questions = [...questions];
+        // Каждая партия — новый случайный набор вопросов без повторов.
+        this.questions = typeof buildQuestionSet === "function"
+            ? buildQuestionSet()
+            : [...questions];
+
         this.usedLifelines = {
             fiftyFifty: false,
             phoneFriend: false,
@@ -127,105 +214,79 @@ class MillionaireGame {
             lastQuestionUsed: -1
         };
 
-        this.timeLeft = 60;
-        this.timer = null;
+        this.timeLeft = MillionaireGame.QUESTION_TIME;
         this.thinkingStartTime = null;
+        this.selectedAnswer = null;
         this.isPaused = false;
+        this.answersLocked = false;
 
-        Object.keys(this.lifelines).forEach(key => {
-            this.lifelines[key].disabled = false;
+        Object.values(this.lifelines).forEach((button) => {
+            if (button) button.disabled = false;
         });
 
-        Object.values(this.answerButtons).forEach(button => {
-            button.className = 'answer';
+        Object.values(this.answerButtons).forEach((button) => {
+            if (!button) return;
+            button.className = "answer";
+            button.disabled = false;
         });
+
+        this.hideAudienceChart();
     }
 
     resetGame() {
-        this.questionElement.style.visibility = 'hidden';
-        Object.values(this.answerButtons).forEach(button => {
-            button.style.visibility = 'hidden';
-        });
-        this.timerElement.style.visibility = 'hidden';
-        this.lifelinesContainer.style.display = 'none';
-
+        this.stopTimer();
+        this.clearAllTimeouts();
         this.initializeNewGame();
-
-        this.startGame();
+        this.showScreen(this.introScreen);
     }
 
-    startGame() {
-        const introMessages = [
-            "Приветствуем вас на игре «Кто хочет стать миллионером»! Вам предстоит проверить свои знания о морском деле и побороться за миллион.",
-            "Для ответа на каждый вопрос у вас будет ровно минута. Следите за временем — секундомер справа от вас.",
-            "Наш спонсор – маркетплейс яхтенных туров ImSkipper – желает вам семь футов под килем! Отдать швартовы!"
-        ];
-
-        this.questionElement.style.visibility = 'hidden';
-        Object.values(this.answerButtons).forEach(button => {
-            button.style.visibility = 'hidden';
+    showScreen(screen) {
+        [this.introScreen, this.gameScreen].forEach((s) => {
+            if (s) s.classList.toggle("is-active", s === screen);
         });
-        this.timerElement.style.visibility = 'hidden';
-        this.startButtonContainer.style.display = 'none';
-        this.lifelinesContainer.style.display = 'none';
-
-        this.showHostMessage(introMessages[0]);
-
-        setTimeout(() => {
-            this.showHostMessage(introMessages[1]);
-
-            setTimeout(() => {
-                this.showHostMessage(introMessages[2]);
-
-                setTimeout(() => {
-                    this.startButtonContainer.style.display = 'block';
-                }, 5000);
-
-            }, 5000);
-
-        }, 5000);
     }
 
     startFirstQuestion() {
-        this.startButtonContainer.style.display = 'none';
-
-        this.questionElement.style.visibility = 'visible';
-        Object.values(this.answerButtons).forEach(button => {
-            button.style.visibility = 'visible';
-        });
-        this.timerElement.style.visibility = 'visible';
-        this.lifelinesContainer.style.display = 'flex';
-
+        this.showScreen(this.gameScreen);
+        this.showHostMessage(this.getRandomPhrase("welcome"));
         this.showQuestion();
     }
 
-    startTimer() {
-        this.timeLeft = 60;
-        this.updateTimerDisplay();
-        this.thinkingStartTime = Date.now();
+    /* ─── Таймер ───────────────────────────────────────────── */
 
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
+    startTimer() {
+        this.stopTimer();
+        this.timeLeft = MillionaireGame.QUESTION_TIME;
+        this.thinkingStartTime = Date.now();
+        this.updateTimerDisplay();
 
         this.timer = setInterval(() => {
-            if (!this.isPaused) {
-                this.timeLeft--;
-                this.updateTimerDisplay();
+            if (this.isPaused) return;
 
-                if (this.timeLeft <= 10) {
-                    this.timerElement.classList.add('warning');
-                }
+            this.timeLeft--;
+            this.updateTimerDisplay();
 
-                if (this.timeLeft <= 0) {
-                    this.timeExpired();
-                }
+            if (this.timeLeft <= 10 && this.timerElement) {
+                this.timerElement.classList.add("is-warning");
+            }
+            if (this.timeLeft <= 0) {
+                this.timeExpired();
             }
         }, 1000);
     }
 
     updateTimerDisplay() {
-        this.timerElement.textContent = this.timeLeft;
+        if (this.timerValue) {
+            this.timerValue.textContent = String(Math.max(this.timeLeft, 0));
+        } else if (this.timerElement) {
+            this.timerElement.textContent = String(Math.max(this.timeLeft, 0));
+        }
+
+        if (this.timerProgress) {
+            const circumference = 125.66;
+            const fraction = Math.max(this.timeLeft, 0) / MillionaireGame.QUESTION_TIME;
+            this.timerProgress.style.strokeDashoffset = String(circumference * (1 - fraction));
+        }
     }
 
     stopTimer() {
@@ -233,17 +294,25 @@ class MillionaireGame {
             clearInterval(this.timer);
             this.timer = null;
         }
-        this.timerElement.classList.remove('warning');
+        if (this.timerElement) {
+            this.timerElement.classList.remove("is-warning");
+        }
     }
 
     timeExpired() {
         this.stopTimer();
-        this.showHostMessage("Время истекло!");
-        setTimeout(() => {
-            this.showHostMessage(this.getRandomPhrase('wrong'));
-            setTimeout(() => this.endGame(), 2000);
-        }, 1000);
+        this.answersLocked = true;
+        TG.haptic("error");
+        this.showHostMessage("Время истекло! " + this.getRandomPhrase("wrong"));
+
+        const question = this.questions[this.currentQuestion];
+        if (question && this.answerButtons[question.correct]) {
+            this.answerButtons[question.correct].classList.add("is-correct");
+        }
+        this.setTrackedTimeout(() => this.endGame(), 2200);
     }
+
+    /* ─── Вопросы и ответы ─────────────────────────────────── */
 
     showQuestion() {
         if (this.currentQuestion >= this.questions.length) {
@@ -253,241 +322,370 @@ class MillionaireGame {
 
         const question = this.questions[this.currentQuestion];
         if (!question) {
-            console.error('Ошибка: вопрос не найден');
             this.endGame();
             return;
         }
 
-        this.questionElement.textContent = question.question;
+        this.answersLocked = false;
+        this.hideAudienceChart();
+
+        if (this.questionElement) {
+            this.questionElement.textContent = question.question;
+        }
 
         Object.entries(question.answers).forEach(([letter, answer]) => {
             const button = this.answerButtons[letter];
-            button.innerHTML = `<span class="letter">${letter}:</span> «${answer}»`;
-            button.className = 'answer';
-            button.style.visibility = 'visible';
+            if (!button) return;
+            button.className = "answer";
+            button.disabled = false;
+            const textEl = button.querySelector(".answer__text");
+            if (textEl) {
+                textEl.textContent = answer;
+            } else {
+                button.textContent = `${letter}: ${answer}`;
+            }
         });
 
+        this.updateProgress();
         this.startTimer();
-        this.thinkingStartTime = Date.now();
-        this.updatePrizeTable();
+    }
+
+    updateProgress() {
+        if (this.questionCounter) {
+            this.questionCounter.textContent =
+                `Вопрос ${this.currentQuestion + 1} из ${this.questions.length}`;
+        }
+        if (this.currentPrizeLabel) {
+            this.currentPrizeLabel.textContent = this.formatMoney(this.prizes[this.currentQuestion]);
+        }
+        this.updatePrizeLadder();
+    }
+
+    updatePrizeLadder() {
+        if (!this.prizeLadder) return;
+        this.prizeLadder.querySelectorAll(".ladder__row").forEach((row) => {
+            const index = Number(row.dataset.index);
+            row.classList.toggle("ladder__row--current", index === this.currentQuestion);
+            row.classList.toggle("ladder__row--passed", index < this.currentQuestion);
+        });
+    }
+
+    toggleLadder(open) {
+        if (!this.ladderSheet) return;
+        this.ladderSheet.hidden = !open;
+        if (open) {
+            TG.haptic("light");
+            this.updatePrizeLadder();
+        }
     }
 
     checkAnswer(selectedAnswer) {
-        const thinkingTime = (Date.now() - this.thinkingStartTime) / 1000;
-        const lifelineUsed = this.usedLifelines.fiftyFifty ||
-                             this.usedLifelines.phoneFriend ||
-                             this.usedLifelines.askAudience;
-        const usedLifelinesOnCurrentQuestion =
-            lifelineUsed && this.usedLifelines.lastQuestionUsed === this.currentQuestion;
+        if (this.answersLocked || this.isPaused) return;
 
-        if (thinkingTime > 25 || usedLifelinesOnCurrentQuestion) {
+        TG.haptic("light");
+
+        const thinkingTime = this.thinkingStartTime
+            ? (Date.now() - this.thinkingStartTime) / 1000
+            : 0;
+        const usedLifelineHere =
+            this.usedLifelines.lastQuestionUsed === this.currentQuestion;
+
+        if (thinkingTime > 25 || usedLifelineHere) {
             this.selectedAnswer = selectedAnswer;
+            const button = this.answerButtons[selectedAnswer];
+            if (button) button.classList.add("is-selected");
             this.showConfirmationModal();
         } else {
             this.processAnswer(selectedAnswer);
         }
     }
 
+    processAnswer(selectedAnswer) {
+        if (this.answersLocked) return;
+        this.answersLocked = true;
+        this.stopTimer();
+
+        const question = this.questions[this.currentQuestion];
+        const selectedButton = this.answerButtons[selectedAnswer];
+        if (selectedButton) selectedButton.classList.remove("is-selected");
+
+        Object.values(this.answerButtons).forEach((button) => {
+            if (button) button.disabled = true;
+        });
+
+        if (selectedAnswer === question.correct) {
+            TG.haptic("success");
+            if (selectedButton) selectedButton.classList.add("is-correct");
+
+            const wonPrize = this.prizes[this.currentQuestion];
+            this.showHostMessage(
+                `${this.getRandomPhrase("correct")} Ваш выигрыш — ${this.formatMoney(wonPrize)}.`
+            );
+
+            this.setTrackedTimeout(() => {
+                this.currentQuestion++;
+                if (this.currentQuestion < this.questions.length) {
+                    this.showHostMessage(
+                        `Следующий вопрос — на ${this.formatMoney(this.prizes[this.currentQuestion])}.`
+                    );
+                    this.setTrackedTimeout(() => this.showQuestion(), 1400);
+                } else {
+                    this.winGame();
+                }
+            }, 2000);
+        } else {
+            TG.haptic("error");
+            if (selectedButton) selectedButton.classList.add("is-wrong");
+            const correctButton = this.answerButtons[question.correct];
+            if (correctButton) correctButton.classList.add("is-correct");
+
+            this.showHostMessage(this.getRandomPhrase("wrong"));
+            this.setTrackedTimeout(() => this.endGame(), 2600);
+        }
+    }
+
+    /* ─── Подсказки ────────────────────────────────────────── */
+
     useFiftyFifty() {
-        if (this.usedLifelines.fiftyFifty) return;
+        if (this.usedLifelines.fiftyFifty || this.answersLocked) return;
+        TG.haptic("medium");
 
         const question = this.questions[this.currentQuestion];
         const wrongAnswers = Object.keys(question.answers)
-            .filter(letter => letter !== question.correct);
+            .filter((letter) => letter !== question.correct);
 
-        const answersToHide = wrongAnswers
+        wrongAnswers
             .sort(() => Math.random() - 0.5)
-            .slice(0, 2);
+            .slice(0, 2)
+            .forEach((letter) => {
+                const button = this.answerButtons[letter];
+                if (button) {
+                    button.classList.add("is-hidden");
+                    button.disabled = true;
+                }
+            });
 
-        answersToHide.forEach(letter => {
-            this.answerButtons[letter].style.visibility = 'hidden';
-        });
-
+        this.showHostMessage("Убираем два неверных варианта. Осталось выбрать из двух!");
         this.usedLifelines.fiftyFifty = true;
         this.usedLifelines.lastQuestionUsed = this.currentQuestion;
-        this.lifelines.fiftyFifty.disabled = true;
+        if (this.lifelines.fiftyFifty) this.lifelines.fiftyFifty.disabled = true;
     }
 
     usePhoneFriend() {
-        if (this.usedLifelines.phoneFriend) return;
+        if (this.usedLifelines.phoneFriend || this.answersLocked) return;
+        TG.haptic("medium");
 
         const question = this.questions[this.currentQuestion];
-        const confidence = Math.random();
+        const visibleLetters = Object.keys(question.answers).filter((letter) => {
+            const button = this.answerButtons[letter];
+            return !button || !button.classList.contains("is-hidden");
+        });
+
+        const confident = Math.random() > 0.3;
         let message;
 
-        if (confidence > 0.7) {
-            const correctText = question.answers[question.correct];
-            message = `Я уверен на 90%, что правильный ответ - ${question.correct}: «${correctText}»`;
+        if (confident) {
+            message = `Ваш друг: «Я почти уверен — это ${question.correct}: "${question.answers[question.correct]}"».`;
         } else {
-            const randomLetter = Object.keys(question.answers)[Math.floor(Math.random() * 4)];
-            const randomText = question.answers[randomLetter];
-            message = `Я не совсем уверен, но возможно это ${randomLetter}: «${randomText}»`;
+            const guess = visibleLetters[Math.floor(Math.random() * visibleLetters.length)];
+            message = `Ваш друг: «Сложный вопрос… Рискнул бы поставить на ${guess}: "${question.answers[guess]}"».`;
         }
 
-        this.showHostMessage(`Ваш друг говорит: "${message}"`);
+        this.showHostMessage(message);
         this.usedLifelines.phoneFriend = true;
         this.usedLifelines.lastQuestionUsed = this.currentQuestion;
-        this.lifelines.phoneFriend.disabled = true;
+        if (this.lifelines.phoneFriend) this.lifelines.phoneFriend.disabled = true;
     }
 
     useAskAudience() {
-        if (this.usedLifelines.askAudience) return;
+        if (this.usedLifelines.askAudience || this.answersLocked) return;
+        TG.haptic("medium");
 
         const question = this.questions[this.currentQuestion];
-        const results = {};
-        let remaining = 100;
-
-        Object.keys(question.answers).forEach(letter => {
-            if (letter === question.correct) {
-                results[letter] = 40 + Math.floor(Math.random() * 30);
-            } else {
-                results[letter] = Math.floor(Math.random() * (remaining / 3));
-            }
-            remaining -= results[letter];
+        const letters = Object.keys(question.answers);
+        const visible = letters.filter((letter) => {
+            const button = this.answerButtons[letter];
+            return !button || !button.classList.contains("is-hidden");
         });
 
-        this.showHostMessage(`Результаты голосования зала:
-            A: ${results.A}%,
-            B: ${results.B}%,
-            C: ${results.C}%,
-            D: ${results.D}%`);
+        // Голоса: правильный ответ получает бонус, остальные — случайный вес.
+        const weights = {};
+        visible.forEach((letter) => {
+            weights[letter] = (letter === question.correct ? 50 : 8) + Math.random() * 25;
+        });
+        const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
+
+        const results = {};
+        let allocated = 0;
+        visible.forEach((letter, i) => {
+            if (i === visible.length - 1) {
+                results[letter] = 100 - allocated;
+            } else {
+                results[letter] = Math.round((weights[letter] / total) * 100);
+                allocated += results[letter];
+            }
+        });
+        letters.forEach((letter) => {
+            if (!(letter in results)) results[letter] = 0;
+        });
+
+        this.renderAudienceChart(results);
+        this.showHostMessage("Зал проголосовал — результаты на экране!");
 
         this.usedLifelines.askAudience = true;
         this.usedLifelines.lastQuestionUsed = this.currentQuestion;
-        this.lifelines.askAudience.disabled = true;
+        if (this.lifelines.askAudience) this.lifelines.askAudience.disabled = true;
     }
 
-    showHostMessage(message) {
-        this.hostMessage.textContent = message;
-    }
+    renderAudienceChart(results) {
+        if (!this.audienceChart) {
+            this.showHostMessage(
+                `Голоса зала — A: ${results.A}%, B: ${results.B}%, C: ${results.C}%, D: ${results.D}%`
+            );
+            return;
+        }
 
-    getRandomPhrase(type) {
-        const phrases = hostPhrases[type];
-        return phrases[Math.floor(Math.random() * phrases.length)];
-    }
-
-    updatePrizeTable() {
-        document.querySelectorAll('.prize-row').forEach(row => {
-            row.classList.remove('current');
+        this.audienceChart.hidden = false;
+        this.audienceChart.querySelectorAll(".audience-chart__col").forEach((col) => {
+            const bar = col.querySelector(".audience-chart__bar");
+            const pct = col.querySelector(".audience-chart__pct");
+            const letter = bar.dataset.letter;
+            const value = results[letter] || 0;
+            pct.textContent = `${value}%`;
+            requestAnimationFrame(() => {
+                bar.style.height = `${Math.max(value, 2)}%`;
+            });
         });
-
-        const currentRow = document.getElementById(String(this.currentQuestion + 1));
-        if (currentRow) {
-            currentRow.classList.add('current');
-        }
     }
 
-    showWinnerModal() {
-        this.winnerModal.style.display = 'flex';
-        this.winnerModal.classList.remove('fade-out');
-        void this.winnerModal.offsetWidth;
-        this.winnerModal.classList.add('fade-in');
+    hideAudienceChart() {
+        if (!this.audienceChart) return;
+        this.audienceChart.hidden = true;
+        this.audienceChart.querySelectorAll(".audience-chart__bar").forEach((bar) => {
+            bar.style.height = "0%";
+        });
     }
 
-    showConsolationModal() {
-        this.consolationModal.style.display = 'flex';
-        this.consolationModal.classList.remove('fade-out');
-        void this.consolationModal.offsetWidth;
-        this.consolationModal.classList.add('fade-in');
-    }
-
-    hideWinnerModal() {
-        this.winnerModal.classList.remove('fade-in');
-        this.winnerModal.classList.add('fade-out');
-        this.winnerModal.addEventListener('animationend', () => {
-            this.winnerModal.style.display = 'none';
-            this.winnerModal.classList.remove('fade-out');
-        }, { once: true });
-    }
-
-    hideConsolationModal(callback) {
-        this.consolationModal.classList.remove('fade-in');
-        this.consolationModal.classList.add('fade-out');
-        this.consolationModal.addEventListener('animationend', () => {
-            this.consolationModal.style.display = 'none';
-            this.consolationModal.classList.remove('fade-out');
-            if (callback) callback();
-        }, { once: true });
-    }
-
-    winGame() {
-        this.showHostMessage("Поздравляем! Вы стали миллионером!");
-        setTimeout(() => {
-            this.showWinnerModal();
-        }, 3000);
-    }
-
-    endGame() {
-        let finalPrize = 0;
-        if (this.currentQuestion >= 10) {
-            finalPrize = 32000;
-        } else if (this.currentQuestion >= 5) {
-            finalPrize = 1000;
-        } else if (this.currentQuestion > 0) {
-            finalPrize = this.prizes[this.currentQuestion - 1];
-        }
-
-        this.showHostMessage(`Игра окончена. Ваш выигрыш: ${finalPrize} рублей`);
-        setTimeout(() => {
-            this.showConsolationModal();
-        }, 3000);
-    }
+    /* ─── Подтверждение ответа ─────────────────────────────── */
 
     showConfirmationModal() {
         this.isPaused = true;
-        this.confirmationModal.style.display = 'flex';
+        this.showModal(this.confirmationModal);
     }
 
     hideConfirmationModal() {
         this.isPaused = false;
-        this.confirmationModal.style.display = 'none';
+        this.hideModal(this.confirmationModal);
     }
 
     handleConfirmation(confirmed) {
+        const answer = this.selectedAnswer;
         this.hideConfirmationModal();
+
         if (confirmed) {
-            this.processAnswer(this.selectedAnswer);
+            this.processAnswer(answer);
+        } else {
+            const button = this.answerButtons[answer];
+            if (button) button.classList.remove("is-selected");
         }
+        this.selectedAnswer = null;
     }
 
-    processAnswer(selectedAnswer) {
-        this.stopTimer();
-        const question = this.questions[this.currentQuestion];
+    /* ─── Модальные окна ───────────────────────────────────── */
 
-        if (selectedAnswer === question.correct) {
-            this.answerButtons[selectedAnswer].classList.add('correct');
-            this.showHostMessage(this.getRandomPhrase('correct'));
+    showModal(modal) {
+        if (!modal) return;
+        modal.classList.remove("is-closing");
+        modal.hidden = false;
+        // Совместимость со старыми проверками display
+        modal.style.display = "flex";
+    }
 
-            setTimeout(() => {
-                const currentPrize = this.prizes[this.currentQuestion];
-                this.showHostMessage(`Вы выиграли ${currentPrize} рублей!`);
-
-                setTimeout(() => {
-                    this.currentQuestion++;
-                    if (this.currentQuestion < this.questions.length) {
-                        this.showHostMessage(`Следующий вопрос будет на ${this.prizes[this.currentQuestion]} рублей.`);
-                        setTimeout(() => {
-                            this.thinkingStartTime = null;
-                            this.showQuestion();
-                        }, 2000);
-                    } else {
-                        this.winGame();
-                    }
-                }, 2000);
-            }, 2000);
-        } else {
-            this.answerButtons[selectedAnswer].classList.add('wrong');
-            this.answerButtons[question.correct].classList.add('correct');
-            this.showHostMessage(this.getRandomPhrase('wrong'));
-            this.thinkingStartTime = null;
-            setTimeout(() => this.endGame(), 2000);
+    hideModal(modal, callback) {
+        if (!modal || modal.hidden) {
+            if (callback) callback();
+            return;
         }
+
+        let finished = false;
+        const finish = () => {
+            if (finished) return;
+            finished = true;
+            modal.hidden = true;
+            modal.style.display = "none";
+            modal.classList.remove("is-closing");
+            if (callback) callback();
+        };
+
+        modal.classList.add("is-closing");
+        modal.addEventListener("animationend", finish, { once: true });
+        // Страховка, если animationend не сработает (reduced motion, JSDOM)
+        this.setTrackedTimeout(finish, 350);
+    }
+
+    copyPromo(button) {
+        const code = button.dataset.copy;
+        const done = () => {
+            const original = button.textContent;
+            button.textContent = "Скопировано!";
+            this.setTrackedTimeout(() => { button.textContent = original; }, 1500);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(done).catch(done);
+        } else {
+            done();
+        }
+        TG.haptic("success");
+    }
+
+    /* ─── Завершение игры ──────────────────────────────────── */
+
+    getGuaranteedPrize() {
+        let guaranteed = 0;
+        MillionaireGame.MILESTONES.forEach((index) => {
+            if (this.currentQuestion > index) {
+                guaranteed = this.prizes[index];
+            }
+        });
+        return guaranteed;
+    }
+
+    winGame() {
+        this.stopTimer();
+        this.answersLocked = true;
+        this.showHostMessage("Невероятно! Вы стали миллионером!");
+        TG.sendResult({ result: "win", prize: 1000000, timestamp: Date.now() });
+        this.setTrackedTimeout(() => this.showModal(this.winnerModal), 1800);
+    }
+
+    endGame() {
+        this.stopTimer();
+        const finalPrize = this.getGuaranteedPrize();
+
+        if (this.finalResult) {
+            this.finalResult.textContent = finalPrize > 0
+                ? `Ваш выигрыш: ${this.formatMoney(finalPrize)}`
+                : `Вы дошли до вопроса №${this.currentQuestion + 1}`;
+        }
+
+        TG.sendResult({
+            result: "lose",
+            prize: finalPrize,
+            question: this.currentQuestion + 1,
+            timestamp: Date.now()
+        });
+
+        this.showModal(this.consolationModal);
     }
 }
+
+/* ─── Запуск ───────────────────────────────────────────────── */
 
 if (typeof module !== "undefined" && module.exports) {
     module.exports = MillionaireGame;
 } else {
-    window.onload = () => new MillionaireGame();
+    document.addEventListener("DOMContentLoaded", () => {
+        TG.init();
+        new MillionaireGame();
+    });
 }
-
