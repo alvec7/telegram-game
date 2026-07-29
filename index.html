@@ -33,9 +33,15 @@
             </div>
 
             <div class="lifelines">
-                <button id="fifty-fifty"><i class="fas fa-percent"></i>50/50</button>
-                <button id="phone-friend"><i class="fas fa-phone"></i>Звонок другу</button>
-                <button id="ask-audience"><i class="fas fa-user-friends"></i>Помощь зала</button>
+                <div class="lifeline" data-tooltip="Убрать два неверных ответа">
+                    <button id="fifty-fifty" title="Убрать два неверных ответа"><i class="fas fa-percent"></i>50/50</button>
+                </div>
+                <div class="lifeline" data-tooltip="Позвонить другу за подсказкой">
+                    <button id="phone-friend" title="Позвонить другу за подсказкой"><i class="fas fa-phone"></i>Звонок другу</button>
+                </div>
+                <div class="lifeline" data-tooltip="Спросить мнение зала">
+                    <button id="ask-audience" title="Спросить мнение зала"><i class="fas fa-user-friends"></i>Помощь зала</button>
+                </div>
             </div>
         </div>
         <div class="prize-table">
