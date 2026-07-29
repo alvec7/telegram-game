@@ -67,6 +67,10 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+/* Критично: атрибут hidden должен побеждать любые классовые display-правила
+   (.ladder-sheet, .audience-chart, .modal и т.д.) */
+[hidden] { display: none !important; }
+
 body {
     margin: 0;
     font-family: var(--font-family);
@@ -96,6 +100,7 @@ button {
     max-width: 520px;
     margin: 0 auto;
     padding: max(var(--space-4), env(safe-area-inset-top)) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
+    min-height: 100vh;
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
@@ -190,10 +195,16 @@ button {
     font-size: var(--text-2xl);
     font-weight: 800;
     line-height: 1.2;
-    background: var(--gradient-gold);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--color-accent); /* запасной вариант, если clip-текст не поддерживается */
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+    .intro__title {
+        background: var(--gradient-gold);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 }
 
 .intro__subtitle {
@@ -561,6 +572,7 @@ button {
     position: relative;
     width: 100%;
     max-width: 520px;
+    max-height: 78vh;
     max-height: 78dvh;
     overflow-y: auto;
     background: var(--color-bg-elevated);
@@ -689,10 +701,16 @@ button {
     margin: 0 0 var(--space-3);
     font-size: var(--text-xl);
     font-weight: 800;
-    background: var(--gradient-gold);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--color-accent); /* запасной вариант */
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+    .modal__title {
+        background: var(--gradient-gold);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 }
 
 .modal__text {

@@ -94,6 +94,20 @@ describe('MillionaireGame', () => {
     game.clearAllTimeouts();
   });
 
+  test('оверлеи (шторка, модалки, диаграмма) скрыты на старте', () => {
+    const env = createGameEnvironment();
+    const doc = env.window.document;
+    new env.window.MillionaireGame();
+
+    ['ladder-sheet', 'audience-chart', 'confirmation-modal', 'winner-modal', 'consolation-modal']
+      .forEach((id) => {
+        expect(doc.getElementById(id).hidden).toBe(true);
+      });
+    // CSS-страховка: атрибут hidden обязан побеждать классовые display-правила
+    const css = fs.readFileSync('styles.css', 'utf8');
+    expect(css).toMatch(/\[hidden\]\s*\{\s*display:\s*none\s*!important/);
+  });
+
   test('после подсказки требуется подтверждение ответа', () => {
     game.useFiftyFifty();
     game.thinkingStartTime = Date.now();

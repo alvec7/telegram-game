@@ -48,18 +48,19 @@ const TG = (() => {
     };
 })();
 
+/* Константы игры (вынесены из класса: static class fields не поддерживаются
+   старыми WebView Telegram и роняют весь скрипт с SyntaxError) */
+var GAME_PRIZES = [
+    100, 200, 300, 500, 1000,
+    2000, 4000, 8000, 16000, 32000,
+    64000, 125000, 250000, 500000, 1000000
+];
+var GAME_MILESTONES = [4, 9]; // индексы несгораемых сумм (1 000 и 32 000)
+var GAME_QUESTION_TIME = 60;  // секунд на вопрос
+
 class MillionaireGame {
-    static PRIZES = [
-        100, 200, 300, 500, 1000,
-        2000, 4000, 8000, 16000, 32000,
-        64000, 125000, 250000, 500000, 1000000
-    ];
-
-    static MILESTONES = [4, 9]; // индексы несгораемых сумм (1 000 и 32 000)
-    static QUESTION_TIME = 60;  // секунд на вопрос
-
     constructor() {
-        this.prizes = MillionaireGame.PRIZES;
+        this.prizes = GAME_PRIZES;
         this.pendingTimeouts = new Set();
         this.timer = null;
 
@@ -155,7 +156,7 @@ class MillionaireGame {
             const row = document.createElement("li");
             row.className = "ladder__row";
             row.dataset.index = String(i);
-            if (MillionaireGame.MILESTONES.includes(i) || i === this.prizes.length - 1) {
+            if (GAME_MILESTONES.includes(i) || i === this.prizes.length - 1) {
                 row.classList.add("ladder__row--milestone");
             }
             row.innerHTML =
@@ -214,7 +215,7 @@ class MillionaireGame {
             lastQuestionUsed: -1
         };
 
-        this.timeLeft = MillionaireGame.QUESTION_TIME;
+        this.timeLeft = GAME_QUESTION_TIME;
         this.thinkingStartTime = null;
         this.selectedAnswer = null;
         this.isPaused = false;
@@ -256,7 +257,7 @@ class MillionaireGame {
 
     startTimer() {
         this.stopTimer();
-        this.timeLeft = MillionaireGame.QUESTION_TIME;
+        this.timeLeft = GAME_QUESTION_TIME;
         this.thinkingStartTime = Date.now();
         this.updateTimerDisplay();
 
@@ -284,7 +285,7 @@ class MillionaireGame {
 
         if (this.timerProgress) {
             const circumference = 125.66;
-            const fraction = Math.max(this.timeLeft, 0) / MillionaireGame.QUESTION_TIME;
+            const fraction = Math.max(this.timeLeft, 0) / GAME_QUESTION_TIME;
             this.timerProgress.style.strokeDashoffset = String(circumference * (1 - fraction));
         }
     }
@@ -642,7 +643,7 @@ class MillionaireGame {
 
     getGuaranteedPrize() {
         let guaranteed = 0;
-        MillionaireGame.MILESTONES.forEach((index) => {
+        GAME_MILESTONES.forEach((index) => {
             if (this.currentQuestion > index) {
                 guaranteed = this.prizes[index];
             }
