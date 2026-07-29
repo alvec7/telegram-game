@@ -65,9 +65,30 @@ class MillionaireGame {
         this.timer = null;
 
         this.cacheElements();
+        this.hideAllOverlays();
         this.buildPrizeLadder();
         this.bindEvents();
         this.initializeNewGame();
+    }
+
+    /**
+     * Принудительно скрывает все оверлеи инлайновыми стилями.
+     * Не полагаемся на CSS: в Telegram WebView стили могут прийти из кеша,
+     * где классовое display:flex перебивало атрибут hidden — из-за этого
+     * шторка с таблицей выигрышей перекрывала экран при запуске.
+     */
+    hideAllOverlays() {
+        [
+            this.ladderSheet,
+            this.audienceChart,
+            this.confirmationModal,
+            this.winnerModal,
+            this.consolationModal
+        ].forEach((el) => {
+            if (!el) return;
+            el.hidden = true;
+            el.style.display = "none";
+        });
     }
 
     /* ─── DOM ──────────────────────────────────────────────── */
@@ -374,6 +395,8 @@ class MillionaireGame {
     toggleLadder(open) {
         if (!this.ladderSheet) return;
         this.ladderSheet.hidden = !open;
+        // Инлайновый display надёжнее классовых правил и переживает кеш CSS
+        this.ladderSheet.style.display = open ? "flex" : "none";
         if (open) {
             TG.haptic("light");
             this.updatePrizeLadder();
@@ -547,6 +570,7 @@ class MillionaireGame {
         }
 
         this.audienceChart.hidden = false;
+        this.audienceChart.style.display = "flex";
         this.audienceChart.querySelectorAll(".audience-chart__col").forEach((col) => {
             const bar = col.querySelector(".audience-chart__bar");
             const pct = col.querySelector(".audience-chart__pct");
@@ -562,6 +586,7 @@ class MillionaireGame {
     hideAudienceChart() {
         if (!this.audienceChart) return;
         this.audienceChart.hidden = true;
+        this.audienceChart.style.display = "none";
         this.audienceChart.querySelectorAll(".audience-chart__bar").forEach((bar) => {
             bar.style.height = "0%";
         });

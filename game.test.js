@@ -15,8 +15,8 @@ function createGameEnvironment() {
     .readFileSync('index.html', 'utf8')
     // внешние скрипты не грузим в тестовой среде
     .replace(/<script[^>]*src="https:[^"]*"[^>]*><\/script>/g, '')
-    .replace(/<script src="questions\.js"><\/script>/, '')
-    .replace(/<script src="game\.js"><\/script>/, '');
+    .replace(/<script src="questions\.js[^"]*"><\/script>/, '')
+    .replace(/<script src="game\.js[^"]*"><\/script>/, '');
 
   const dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true });
   const ctx = dom.getInternalVMContext();
@@ -101,11 +101,30 @@ describe('MillionaireGame', () => {
 
     ['ladder-sheet', 'audience-chart', 'confirmation-modal', 'winner-modal', 'consolation-modal']
       .forEach((id) => {
-        expect(doc.getElementById(id).hidden).toBe(true);
+        const el = doc.getElementById(id);
+        expect(el.hidden).toBe(true);
+        // Инлайновый display:none — защита от закешированного CSS в Telegram WebView
+        expect(el.style.display).toBe('none');
       });
     // CSS-страховка: атрибут hidden обязан побеждать классовые display-правила
     const css = fs.readFileSync('styles.css', 'utf8');
     expect(css).toMatch(/\[hidden\]\s*\{\s*display:\s*none\s*!important/);
+
+    // В разметке оверлеи также должны иметь инлайновый display:none
+    const html = fs.readFileSync('index.html', 'utf8');
+    ['ladder-sheet', 'confirmation-modal', 'winner-modal', 'consolation-modal'].forEach((id) => {
+      expect(html).toMatch(new RegExp(`id="${id}"[^>]*style="display:none"`));
+    });
+  });
+
+  test('шторку с таблицей выигрышей можно открыть и закрыть', () => {
+    const sheet = window.document.getElementById('ladder-sheet');
+    game.toggleLadder(true);
+    expect(sheet.hidden).toBe(false);
+    expect(sheet.style.display).toBe('flex');
+    game.toggleLadder(false);
+    expect(sheet.hidden).toBe(true);
+    expect(sheet.style.display).toBe('none');
   });
 
   test('после подсказки требуется подтверждение ответа', () => {
